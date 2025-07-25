@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Directory.Packages.props", "."]
-COPY ["Directory.build.props", "."]
+COPY ["Directory.Build.props", "."]
 COPY ["src/HabitTracker.Api/HabitTracker.Api.csproj", "src/HabitTracker.Api/"]
 RUN dotnet restore "./src/HabitTracker.Api/HabitTracker.Api.csproj"
 COPY . .
