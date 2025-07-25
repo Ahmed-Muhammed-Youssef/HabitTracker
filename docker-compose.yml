@@ -15,16 +15,16 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://habittracker.aspire-dashboard:18889
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 
-  # habittracker.postgres:
-  #   image: postgres:17.2 # or latest
-  #   environment:
-  #     POSTGRES_DB: habittracker
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: postgres
-  #   volumes:
-  #     - ./.containers/postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - 5432:5432
+  habittracker.postgres:
+    image: postgres:17.2 # or latest
+    environment:
+      POSTGRES_DB: habittracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./.containers/postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
 
   habittracker.seq:
     image: datalust/seq:latest
