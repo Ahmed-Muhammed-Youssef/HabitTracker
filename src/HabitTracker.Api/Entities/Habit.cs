@@ -46,7 +46,7 @@ public sealed class Target
 public enum HabitStatus
 {
     None = 0,
-    ongoing = 1,
+    Ongoing = 1,
     Completed = 2
 }
 
