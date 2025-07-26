@@ -34,7 +34,7 @@ internal static class HabitMappings
                 },
             CreatedAtUtc = habit.CreatedAtUtc,
             UpdatedAtUtc = habit.UpdatedAtUtc,
-            LastCompletedAtUtc = habit.LastConpletedAtUtc
+            LastCompletedAtUtc = habit.LastCompletedAtUtc
         };
     }
 

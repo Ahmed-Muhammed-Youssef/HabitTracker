@@ -34,7 +34,7 @@ internal static class HabitQueries
             },
             CreatedAtUtc = h.CreatedAtUtc,
             UpdatedAtUtc = h.UpdatedAtUtc,
-            LastCompletedAtUtc = h.LastConpletedAtUtc
+            LastCompletedAtUtc = h.LastCompletedAtUtc
         };
     }
 }
