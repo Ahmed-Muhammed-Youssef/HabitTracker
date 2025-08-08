@@ -1,9 +1,12 @@
-﻿using HabitTracker.Api.Database;
+﻿using FluentValidation;
+using FluentValidation.Results;
+using HabitTracker.Api.Database;
 using HabitTracker.Api.DTOs;
 using HabitTracker.Api.DTOs.Habits;
 using HabitTracker.Api.Entities;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Api.Controllers;
@@ -46,8 +49,17 @@ public sealed class HabitsController(ApplicationDbContext dbContext) : Controlle
     }
 
     [HttpPost]
-    public async Task<ActionResult<HabitDto>> CreateHabit(CreateHabitDto createHabit)
+    public async Task<ActionResult<HabitDto>> CreateHabit(CreateHabitDto createHabit, IValidator<CreateHabitDto> validator, ProblemDetailsFactory problemDetailsFactory)
     {
+        ValidationResult validationResult = await validator.ValidateAsync(createHabit);
+
+        if(!validationResult.IsValid)
+        {
+            ProblemDetails problemDetails = problemDetailsFactory.CreateProblemDetails(HttpContext, StatusCodes.Status400BadRequest);
+            problemDetails.Extensions.Add("errors", validationResult.ToDictionary());
+            return BadRequest(problemDetails);
+        }
+
         Habit habit = createHabit.ToEntity();
 
         dbContext.Habits.Add(habit);
