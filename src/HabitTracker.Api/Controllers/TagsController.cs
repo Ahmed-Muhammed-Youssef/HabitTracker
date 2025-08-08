@@ -1,8 +1,10 @@
-﻿using HabitTracker.Api.Database;
+﻿using FluentValidation;
+using HabitTracker.Api.Database;
 using HabitTracker.Api.DTOs.Habits;
 using HabitTracker.Api.DTOs.Tags;
 using HabitTracker.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Api.Controllers;
@@ -45,8 +47,17 @@ public sealed class TagsController(ApplicationDbContext dbContext) : ControllerB
     }
 
     [HttpPost]
-    public async Task<ActionResult<TagDto>> CreateTag(CreateTagDto createTagDto)
+    public async Task<ActionResult<TagDto>> CreateTag(CreateTagDto createTagDto, IValidator<CreateTagDto> validator, ProblemDetailsFactory problemDetailsFactory)
     {
+        var validationResult = await validator.ValidateAsync(createTagDto);
+
+        if (!validationResult.IsValid)
+        {
+            ProblemDetails problemDetails = problemDetailsFactory.CreateProblemDetails(HttpContext, StatusCodes.Status400BadRequest);
+            problemDetails.Extensions.Add("errors", validationResult.ToDictionary());
+            return BadRequest(problemDetails);
+        }
+
         Tag tag = createTagDto.ToEntity();
 
         if (await dbContext.Tags.AnyAsync(t => t.Name == tag.Name))

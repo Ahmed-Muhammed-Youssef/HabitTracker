@@ -1,3 +1,4 @@
+using FluentValidation;
 using HabitTracker.Api.Database;
 using HabitTracker.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,8 @@ builder.Services
     .AddControllers(options => options.ReturnHttpNotAcceptable = true)
     .AddNewtonsoftJson()
     .AddXmlSerializerFormatters();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddOpenApi();
 
