@@ -1,9 +1,11 @@
-﻿using FluentValidation;
+﻿using System.Linq.Expressions;
+using FluentValidation;
 using FluentValidation.Results;
 using HabitTracker.Api.Database;
 using HabitTracker.Api.DTOs;
 using HabitTracker.Api.DTOs.Habits;
 using HabitTracker.Api.Entities;
+using HabitTracker.Api.Services.Sorting;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -16,14 +18,22 @@ namespace HabitTracker.Api.Controllers;
 public sealed class HabitsController(ApplicationDbContext dbContext) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<HabitsCollectionDto>> GetHabits([FromQuery] HabitQueryParameters habitQuery)
+    public async Task<ActionResult<HabitsCollectionDto>> GetHabits([FromQuery] HabitQueryParameters habitQuery, SortMappingProvider sortMappingProvider)
     {
         string? search = habitQuery.Search?.Trim().ToLower();
+
+        if(!sortMappingProvider.ValidateMappings<HabitDto, Habit>(habitQuery.Sort) )
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"the provided sort parameter is not valid: '{habitQuery.Sort}'");
+        }
+
+        SortMapping[] sortMappings = sortMappingProvider.GetMappings<HabitDto, Habit>();
 
         List<HabitDto> habits = await dbContext.Habits
             .Where(h => search == null || h.Name.ToLower().Contains(search) || h.Description != null && h.Description.ToLower().Contains(search))
             .Where(h => habitQuery.Type == null || h.Type == habitQuery.Type)
             .Where(h => habitQuery.Status == null || h.Status == habitQuery.Status)
+            .ApplySort(habitQuery.Sort, sortMappings)
             .Select(HabitQueries.ProjectToDto())
             .ToListAsync();
 

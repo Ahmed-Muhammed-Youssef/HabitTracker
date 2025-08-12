@@ -1,7 +1,10 @@
 using FluentValidation;
 using HabitTracker.Api.Database;
+using HabitTracker.Api.DTOs.Habits;
+using HabitTracker.Api.Entities;
 using HabitTracker.Api.Extensions;
 using HabitTracker.Api.Middleware;
+using HabitTracker.Api.Services.Sorting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
@@ -55,6 +58,11 @@ builder.Logging.AddOpenTelemetry(options =>
     options.IncludeScopes = true;
     options.IncludeFormattedMessage = true;
 });
+
+builder.Services.AddSingleton<ISortMappingDefinition, SortMappingDefinition<HabitDto, Habit>>(_=> HabitMappings.SortMapping);
+
+builder.Services.AddTransient<SortMappingProvider>();
+
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
