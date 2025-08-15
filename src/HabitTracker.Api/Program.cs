@@ -4,9 +4,11 @@ using HabitTracker.Api.DTOs.Habits;
 using HabitTracker.Api.Entities;
 using HabitTracker.Api.Extensions;
 using HabitTracker.Api.Middleware;
+using HabitTracker.Api.Services;
 using HabitTracker.Api.Services.Sorting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Newtonsoft.Json.Serialization;
 using Npgsql;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -17,7 +19,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddControllers(options => options.ReturnHttpNotAcceptable = true)
-    .AddNewtonsoftJson()
+    .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver())
     .AddXmlSerializerFormatters();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -62,6 +64,8 @@ builder.Logging.AddOpenTelemetry(options =>
 builder.Services.AddSingleton<ISortMappingDefinition, SortMappingDefinition<HabitDto, Habit>>(_=> HabitMappings.SortMapping);
 
 builder.Services.AddTransient<SortMappingProvider>();
+
+builder.Services.AddTransient<DataShapingService>();
 
 WebApplication app = builder.Build();
 
