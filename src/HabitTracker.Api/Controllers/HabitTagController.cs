@@ -10,6 +10,8 @@ namespace HabitTracker.Api.Controllers;
 [Route("habits/{habitid}/tags")]
 public sealed class HabitTagController(ApplicationDbContext dbContext) : ControllerBase
 {
+    public static readonly string Name = nameof(HabitTagController).Replace("Controller", string.Empty);
+
     [HttpPut]
     public async Task<ActionResult> UpsertHabitTags(string habitId, UpsertHabitTagsDto upsertHabitTagsDto)
     {

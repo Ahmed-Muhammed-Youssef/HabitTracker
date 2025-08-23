@@ -1,4 +1,5 @@
-﻿using HabitTracker.Api.Entities;
+﻿using HabitTracker.Api.DTOs.Common;
+using HabitTracker.Api.Entities;
 
 namespace HabitTracker.Api.DTOs.Habits;
 
@@ -17,6 +18,7 @@ public sealed record HabitDto
     public required DateTime CreatedAtUtc { get; init; }
     public DateTime? UpdatedAtUtc { get; init; }
     public DateTime? LastCompletedAtUtc { get; init; }
+    public List<LinkDto> Links { get; set; }
 }
 
 public sealed record FrequencyDto

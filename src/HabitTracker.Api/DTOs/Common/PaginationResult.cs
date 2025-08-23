@@ -2,7 +2,7 @@
 
 namespace HabitTracker.Api.DTOs.Common;
 
-public sealed record PaginationResult<T> : ICollectionResponse<T>
+public sealed record PaginationResult<T> : ICollectionResponse<T>, ILinksResponse
 {
     public List<T> Items { get; init; }
     public int Page { get; set; }
@@ -12,6 +12,8 @@ public sealed record PaginationResult<T> : ICollectionResponse<T>
     public int TotalPages => (int) Math.Ceiling(TotalCount / (double)PageSize);
     public bool HasPreviousPage => Page > 1;
     public bool HasNextPage => Page < TotalCount;
+
+    public List<LinkDto> Links { get; set; }
 
     public static PaginationResult<T> Create(List<T> items, int page, int pageSize, int count)
     {

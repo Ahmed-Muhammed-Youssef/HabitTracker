@@ -2,6 +2,7 @@
 using System.Dynamic;
 using System.Globalization;
 using System.Reflection;
+using HabitTracker.Api.DTOs.Common;
 
 namespace HabitTracker.Api.Services;
 
@@ -22,7 +23,7 @@ public sealed class DataShapingService
 
         return (ExpandoObject)shapedObject;
     }
-    public List<ExpandoObject> ShapeDataCollection<T>(IEnumerable<T> entities, string? fields)
+    public List<ExpandoObject> ShapeDataCollection<T>(IEnumerable<T> entities, string? fields, Func<T, List<LinkDto>>? linksFactory = null)
     {
         PropertyInfo[] propertyInfos = GetRquestedPropertyInfos(fields, typeof(T));
 
@@ -36,6 +37,11 @@ public sealed class DataShapingService
             foreach (var property in propertyInfos)
             {
                 shapedObject[property.Name] = property.GetValue(entity);
+            }
+
+            if(linksFactory != null)
+            {
+                shapedObject["links"] = linksFactory(entity);
             }
         }
 
