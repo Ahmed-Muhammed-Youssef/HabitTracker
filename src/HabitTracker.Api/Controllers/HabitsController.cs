@@ -51,17 +51,22 @@ public sealed class HabitsController(ApplicationDbContext dbContext, LinkService
 
         List<HabitDto> habitsDto = await habitsQuery.ToListAsync();
 
-        List<ExpandoObject> shapedHabits = shapingService.ShapeDataCollection(habitsDto, queryParameters.Fields, h => CreateLinksForHabit(h.Id, queryParameters.Fields));
+        bool includeLinks = queryParameters.Accept == CustomMediaTypeNames.Application.HateoasJson;
+
+        List<ExpandoObject> shapedHabits = shapingService.ShapeDataCollection(habitsDto, queryParameters.Fields, includeLinks ? h => CreateLinksForHabit(h.Id, queryParameters.Fields) : null);
 
         var paginationResult = PaginationResult<ExpandoObject>.Create(shapedHabits, queryParameters.Page, queryParameters.PageSize, count);
 
-        paginationResult.Links = CreateLinksForHabit(queryParameters, paginationResult.HasNextPage, paginationResult.HasPreviousPage);
+        if (includeLinks)
+        {
+            paginationResult.Links = CreateLinksForHabit(queryParameters, paginationResult.HasNextPage, paginationResult.HasPreviousPage);
+        }
 
         return Ok(paginationResult);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetHabit(string id, string? fields, DataShapingService shapingService)
+    public async Task<IActionResult> GetHabit(string id, string? fields, [FromHeader(Name = "Accept")] string? accept, DataShapingService shapingService)
     {
         if (!shapingService.Validate<HabitWithTagsDto>(fields))
         {
@@ -81,9 +86,12 @@ public sealed class HabitsController(ApplicationDbContext dbContext, LinkService
 
         ExpandoObject result = shapingService.ShapeData(habit, fields);
 
-        List<LinkDto> links = CreateLinksForHabit(id, fields);
+        if(accept == CustomMediaTypeNames.Application.HateoasJson)
+        {
+            List<LinkDto> links = CreateLinksForHabit(id, fields);
 
-        result.TryAdd("links", links);
+            result.TryAdd("links", links);
+        }
 
         return Ok(result);
     }
@@ -207,7 +215,7 @@ public sealed class HabitsController(ApplicationDbContext dbContext, LinkService
 
         if (hasPrev)
         {
-            links.Add(linkService.Create(nameof(GetHabits), "previous-page", HttpMethods.Get, new
+            links.Add(linkService.Create(nameof(GetHabits), "previous-page", HttpMethods.Get, new 
             {
                 page = queryParameters.Page - 1,
                 pageSize = queryParameters.PageSize,

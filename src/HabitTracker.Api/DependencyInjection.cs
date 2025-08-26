@@ -5,6 +5,8 @@ using HabitTracker.Api.Entities;
 using HabitTracker.Api.Middleware;
 using HabitTracker.Api.Services;
 using HabitTracker.Api.Services.Sorting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Newtonsoft.Json.Serialization;
@@ -24,6 +26,15 @@ public static class DependencyInjection
             .AddControllers(options => options.ReturnHttpNotAcceptable = true)
             .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver())
             .AddXmlSerializerFormatters();
+
+        builder.Services.Configure<MvcOptions>(options =>
+        {
+            var formatter = options.OutputFormatters
+            .OfType<NewtonsoftJsonOutputFormatter>()
+            .First();
+
+            formatter.SupportedMediaTypes.Add(CustomMediaTypeNames.Application.HateoasJson);
+        });
 
         builder.Services.AddOpenApi();
         return builder;
