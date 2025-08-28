@@ -5,6 +5,7 @@ using HabitTracker.Api.Entities;
 using HabitTracker.Api.Middleware;
 using HabitTracker.Api.Services;
 using HabitTracker.Api.Services.Sorting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,14 @@ public static class DependencyInjection
                         .MigrationsHistoryTable(HistoryRepository.DefaultTableName, Schemas.Application)
                 ));
 
+        builder.Services.AddDbContext<ApplicationIdentityDbContext>(options =>
+           options
+               .UseNpgsql(
+                   builder.Configuration.GetConnectionString("Database"),
+                   npgsqlOptions => npgsqlOptions
+                       .MigrationsHistoryTable(HistoryRepository.DefaultTableName, Schemas.Identity)
+               ));
+
         return builder;
     }
 
@@ -101,6 +110,15 @@ public static class DependencyInjection
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddTransient<LinkService>();
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddAuthenticationServices(this WebApplicationBuilder builder)
+    {
+        builder.Services
+            .AddIdentity<IdentityUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationIdentityDbContext>();
 
         return builder;
     }
