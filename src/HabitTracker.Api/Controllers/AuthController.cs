@@ -2,6 +2,7 @@
 using HabitTracker.Api.DTOs.Auth;
 using HabitTracker.Api.DTOs.Users;
 using HabitTracker.Api.Entities;
+using HabitTracker.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,11 @@ namespace HabitTracker.Api.Controllers;
 [AllowAnonymous]
 public sealed class AuthController(UserManager<IdentityUser> userManager,
     ApplicationIdentityDbContext identityDbContext,
-    ApplicationDbContext applicationDbContext) : ControllerBase
+    ApplicationDbContext applicationDbContext,
+    TokenProvider tokenProvider) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterUserDto userDto)
+    public async Task<ActionResult<AccessTokensDto>> Register(RegisterUserDto userDto)
     {
         using var transaction = await identityDbContext.Database.BeginTransactionAsync();
 
@@ -57,6 +59,24 @@ public sealed class AuthController(UserManager<IdentityUser> userManager,
 
         await transaction.CommitAsync();
 
-        return Ok(user.Id);
+        var accessToken = tokenProvider.Create(new TokenRequest(identityUser.Id, identityUser.Email));
+
+        return Ok(accessToken);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<ActionResult<AccessTokensDto>> Login(LoginUserDto userDto)
+    {
+        IdentityUser? identityUser = await userManager.FindByEmailAsync(userDto.Email);
+
+        if (identityUser == null || !await userManager.CheckPasswordAsync(identityUser, userDto.Password))
+        {
+            return Unauthorized();
+        }
+
+        var accessTokens = tokenProvider.Create(new TokenRequest(identityUser.Id, identityUser.Email!));
+
+        return Ok(accessTokens);
     }
 }
