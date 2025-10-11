@@ -121,6 +121,22 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<UserContext>();
 
+        builder.Services.AddScoped<GithubAccessTokenService>();
+        builder.Services.AddTransient<GithubService>();
+
+        builder.Services
+            .AddHttpClient("github")
+            .ConfigureHttpClient(client =>
+            {
+                client.BaseAddress = new Uri("https://api.github.com/");
+                
+                client.DefaultRequestHeaders
+                .UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("HabitTracker", "1.0"));
+
+                client.DefaultRequestHeaders
+                .Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+            });
+
         return builder;
     }
 
