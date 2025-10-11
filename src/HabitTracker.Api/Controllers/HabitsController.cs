@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Api.Controllers;
 
-[Authorize]
+[Authorize(Roles = $"{Roles.User}")]
 [ApiController]
 [Route("habits")]
 public sealed class HabitsController(ApplicationDbContext dbContext, LinkService linkService, UserContext userContext) : ControllerBase

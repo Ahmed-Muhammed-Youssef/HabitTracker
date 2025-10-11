@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Api.Controllers;
 
-[Authorize]
+[Authorize(Roles = $"{Roles.User}")]
 [ApiController]
 [Route("tags")]
 public sealed class TagsController(ApplicationDbContext dbContext) : ControllerBase

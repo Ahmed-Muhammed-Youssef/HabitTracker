@@ -38,14 +38,30 @@ public sealed class AuthController(UserManager<IdentityUser> userManager,
             UserName = userDto.Email
         };
 
-        var identityResult = await userManager.CreateAsync(identityUser, userDto.Password);
+        IdentityResult createdResult = await userManager.CreateAsync(identityUser, userDto.Password);
 
-        if (!identityResult.Succeeded)
+        if (!createdResult.Succeeded)
         {
             var extensions = new Dictionary<string, object?>() { 
                 {
                     "errors",
-                    identityResult.Errors.ToDictionary(e => e.Code, e => e.Description)
+                    createdResult.Errors.ToDictionary(e => e.Code, e => e.Description)
+                }
+            };
+
+            return Problem(detail: "unable to register user, try again",
+                statusCode: StatusCodes.Status400BadRequest,
+                extensions: extensions);
+        }
+
+        IdentityResult addRoleResult = await userManager.AddToRoleAsync(identityUser, Roles.User);
+
+        if(!addRoleResult.Succeeded)
+        {
+            var extensions = new Dictionary<string, object?>() {
+                {
+                    "errors",
+                    createdResult.Errors.ToDictionary(e => e.Code, e => e.Description)
                 }
             };
 
@@ -62,7 +78,7 @@ public sealed class AuthController(UserManager<IdentityUser> userManager,
 
         await applicationDbContext.SaveChangesAsync();
 
-        AccessTokensDto accessToken = tokenProvider.Create(new TokenRequest(identityUser.Id, identityUser.Email));
+        AccessTokensDto accessToken = tokenProvider.Create(new TokenRequest(identityUser.Id, identityUser.Email, [Roles.User]));
 
         RefreshToken refreshToken = new()
         {
@@ -91,7 +107,9 @@ public sealed class AuthController(UserManager<IdentityUser> userManager,
             return Unauthorized();
         }
 
-        AccessTokensDto accessToken = tokenProvider.Create(new TokenRequest(identityUser.Id, identityUser.Email!));
+        IList<string> roles = await userManager.GetRolesAsync(identityUser);
+
+        AccessTokensDto accessToken = tokenProvider.Create(new TokenRequest(identityUser.Id, identityUser.Email!, roles));
 
         RefreshToken refreshToken = new()
         {
@@ -118,8 +136,10 @@ public sealed class AuthController(UserManager<IdentityUser> userManager,
         {
             return Unauthorized();
         }
-       
-        AccessTokensDto accessToken = tokenProvider.Create(new TokenRequest(existingRefreshToken.User.Id, existingRefreshToken.User.Email!));
+
+        IList<string> roles = await userManager.GetRolesAsync(existingRefreshToken.User);
+
+        AccessTokensDto accessToken = tokenProvider.Create(new TokenRequest(existingRefreshToken.User.Id, existingRefreshToken.User.Email!, roles));
         existingRefreshToken.Token = accessToken.RefreshToken;
         existingRefreshToken.ExpiresAtUtc = DateTime.UtcNow.AddDays(_jwtAuthOptions.RefreshTokenExpirationDays);
         await identityDbContext.SaveChangesAsync();

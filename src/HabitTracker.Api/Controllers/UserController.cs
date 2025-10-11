@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using HabitTracker.Api.Database;
 using HabitTracker.Api.DTOs.Users;
+using HabitTracker.Api.Entities;
 using HabitTracker.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Api.Controllers;
 
-[Authorize]
+[Authorize(Roles = $"{Roles.User}")]
 [ApiController]
 [Route("users")]
 internal sealed class UserController(ApplicationDbContext dbContext, UserContext userContext) : ControllerBase
